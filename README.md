@@ -1,109 +1,89 @@
-# Transaction Starter Project
+## Understanding of the Problem
 
-This is the starter project for the Customer Transactions exercise.
+- The purpose of this application is to provide a simple REST API for managing customer transactions.
 
-## Before you start
+- I understood the main requirement as maintaining transaction information and providing APIs to create a transaction, retrieve a transaction using its transaction ID, update its status, and retrieve all transactions belonging to a particular customer.
+- I decided to keep the application simple and follow a standard Spring Boot layered approach.
+The controller is responsible for receiving HTTP requests, the service layer contains the business logic and validations, and the repository layer handles communication with the H2 database.
 
-The first thing you should do after cloning the repository is:
+## Assumptions I Made
 
-### Linux / macOS
+- I assumed that every transaction must have a unique `transactionId`. If the same ID is submitted again, I treat it as a duplicate transaction.
 
-```bash
-./mvnw clean test
-```
+- I assumed that `customerId` is required because every transaction should belong to a customer.
 
-### Windows
+- I assumed that searching for transactions by customer ID should return an empty list when the customer has no transactions rather than treating it as an error.
 
-```bat
-mvnw.cmd clean test
-```
+- I used H2 as the database because it is already part of the starter project and is sufficient for this exercise.
 
-The sample test should pass before you begin implementing the exercise.
-
-## What is already provided
-
-- Java 17
-- Spring Boot
-- Maven wrapper
-- Spring Web
-- Spring Data JPA
-- H2 embedded database
-- JUnit / Spring Boot Test
-- A sample REST endpoint: `GET /api/sample`
-- A sample test that loads the Spring context
+- I added status and currency lookup APIs as additional functionality because the assignment allows the developer to decide on additional API design.
 
 
-## Exercise
+## Validation Rules
 
-Implement these four operations:
+   ### 1.Request Validation
+- `transactionId` is mandatory and cannot be blank.
+- `customerId` is mandatory and cannot be blank.
 
-1. Create transaction
-2. Get transaction
-3. Update transaction status
-4. Get all transactions for a customer
+### 2.Business Validation
+- Currency must be one of `INR`, `USD`, or `EUR`.
+- Transaction type must be either `PAYMENT` or `REFUND`.
+- Transaction status must be `PENDING`, `COMPLETED`, or `FAILED`.
 
 
-You may change the surrounding design if you believe your solution is better.
+### 3.Invalid Requests
+ - If any validation rule fails, the request is rejected with an appropriate `400 Bad Request` response. Business-specific errors such as duplicate transaction IDs are handled using custom exceptions and the global exception handler.
 
-## Transaction fields
 
-Every transaction contains:
+## API Endpoints I Built
+implemented the four required transaction operations and added one additional lookup APIs.
 
-- Transaction ID
-- Customer ID
-- Amount
-- Currency
-- Transaction Type
-- Transaction Status
+| Method | Endpoint                                    | Purpose |
+|---|---------------------------------------------|---|
+| POST | `/api/transactions`                         | Create a new transaction |
+| GET | `/api/transactions/{transactionId}`         | Get a transaction by transaction ID |
+| PATCH |  `/api/transactions/{transactionId}/status` | Update the transaction status |
+| GET | `/api/transactions/customer/{customerId}`   | Get all transactions for a customer |
+| GET | `/api/transactions/status/{status}`         | Get transactions by status |
 
-### Validation rules
+## How I Approached Testing
 
-Define what makes a transaction valid. At minimum, consider:
+I focused on testing both successful operations and the main failure scenarios.
 
-- Transaction ID
-- Customer ID
-- Amount
-- Currency
-- Transaction type
-- Initial status
+For the service layer, I used JUnit 5 and Mockito. I mocked the repository so that I could test the service business logic without depending on the database.
 
-Also explain any business validation you add beyond the annotations already supplied.
+The main scenarios I tested were:
 
-## API skeleton
+- Creating a transaction successfully.
+- Rejecting a transaction when the transaction ID already exists.
+- Getting an existing transaction successfully.
+- Returning an error when a transaction does not exist.
+- Successfully changing a transaction from `PENDING` to `COMPLETED`.
+- Rejecting an invalid status transition.
+- Getting all transactions for a customer.
+- Handling a customer with no transactions.
 
-### Create
+## Known Limitations
+There are a few limitations in the current implementation.
 
-`TODO`
+- H2 is used as an in-memory database, so it is suitable for this exercise but not intended as a production database.
+- There is no authentication or authorization because it was outside the scope of the exercise.
+- The lookup APIs currently return all matching records and do not support pagination.
 
-Example:
+## What I Would Improve With More Time
+I focused first on understanding the requirements and implementing the main functionality correctly:
 
-```
-TODO
-```
+- I would add more test cases, especially for validation, exception scenarios, and controller APIs.
 
-### Get
+- I would improve the API documentation by adding more request and response examples in Swagger/OpenAPI.
 
-`TODO`
+- I would add pagination to the customer transaction lookup because a customer could have a large number of transactions.
 
-### Update status
+- I would consider using enums for transaction status, transaction type, and currency instead of plain strings.
 
-`TODO`
+- I would improve the error response format so that all errors have a consistent structure.
 
-Example:
 
-```
-TODO
-```
 
-### Get customer transactions
 
-`TODO`
-
-## Testing expectations
-
-Add at least four meaningful tests.
-
-Your tests should cover more than just application startup. 
-
-You decide exactly which tests provide the best coverage.
 
